@@ -1,6 +1,6 @@
 # This Python 3 environment comes with many helpful analytics libraries installed
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load in 
+# For example, here's several helpful packages to load in
 
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
@@ -9,7 +9,6 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
 import os
-print(os.listdir("../input"))
 
 # Any results you write to the current directory are saved as output.
 import json
@@ -32,8 +31,8 @@ from sklearn.preprocessing import FunctionTransformer, LabelEncoder
 from tqdm import tqdm
 tqdm.pandas()
 
-train = pd.read_json('../input/train.json')
-test = pd.read_json('../input/test.json')
+train = pd.read_json('../data/train.json')
+test = pd.read_json('../data/test.json')
 
 train['num_ingredients'] = train['ingredients'].apply(lambda x: len(x))
 test['num_ingredients'] = test['ingredients'].apply(lambda x: len(x))
@@ -41,27 +40,7 @@ train = train[train['num_ingredients'] > 2]
 
 
 lemmatizer = WordNetLemmatizer()
-def preprocess(ingredients):
-    ingredients_text = ' '.join(ingredients)
-    ingredients_text = ingredients_text.lower()
-    ingredients_text = ingredients_text.replace('-', '')#wasabe
-    ingredients_text = ingredients_text.replace('wasabe', 'wasabi') #for wrong name
-    ingredients_text = ingredients_text.replace('fish sauce', 'fishsauce')
-    ingredients_text = ingredients_text.replace('coconut cream', 'coconutcream')
-    ingredients_text = ingredients_text.replace('yellow onion', 'yellowonion')
-    ingredients_text = ingredients_text.replace('cream cheese', 'creamcheese') 
-    ingredients_text = ingredients_text.replace('baby spinach', 'babyspinach')
-    ingredients_text = ingredients_text.replace('coriander seeds', 'corianderseeds')
-    ingredients_text = ingredients_text.replace('corn tortillas', 'corntortillas')
-    ingredients_text = ingredients_text.replace('rice cakes', 'ricecakes')
-    words = []
-    for word in ingredients_text.split():
-        if re.findall('[0-9]', word): continue
-        if len(word) <= 2: continue
-        if '’' in word: continue
-        word = lemmatizer.lemmatize(word)
-        if len(word) > 0: words.append(word)
-    return ' '.join(words)
+from food.prep import preprocess
 '''
 for ingredient, expected in [
     ('eggs', 'egg'),
@@ -92,19 +71,19 @@ y_train = label_encoder.fit_transform(train['cuisine'].values)
 dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))
 
 
-estimator = SVC(C=250, # penalty parameter, setting it to a larger value 
+estimator = SVC(C=250, # penalty parameter, setting it to a larger value
 	 			 kernel='rbf', # kernel type, rbf working fine here
 	 			 degree=3, # default value, not tuned yet
 	 			 gamma=1.4, # kernel coefficient, not tuned yet
 	 			 coef0=1, # change to 1 from default value of 0.0
 	 			 shrinking=True, # using shrinking heuristics
-	 			 tol=0.001, # stopping criterion tolerance 
+	 			 tol=0.001, # stopping criterion tolerance
 	 			 probability=False, # no need to enable probability estimates
 	 			 cache_size=1000, # 200 MB cache size
-	 			 class_weight=None, # all classes are treated equally 
-	 			 verbose=False, # print the logs 
+	 			 class_weight=None, # all classes are treated equally
+	 			 verbose=False, # print the logs
 	 			 max_iter=-1, # no limit, let it run
-	 			 decision_function_shape=None, # will use one vs rest explicitly 
+	 			 decision_function_shape=None, # will use one vs rest explicitly
 	 			 random_state=None)
 classifier = OneVsRestClassifier(estimator, n_jobs=-1)
 
